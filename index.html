@@ -90,7 +90,34 @@ function zobrazSoupisku() {
     }, function(e){document.getElementById('soupiska').textContent='Statistiky se nepodařilo načíst: '+e.message;});
   }, function(e){document.getElementById('soupiska').textContent='Soupisku se nepodařilo načíst: '+e.message;});
 }
-function zobrazKanadskeBodovani(){const box=document.getElementById('kanadske-bodovani');apiGet('statistiky',{},function(data){box.innerHTML='';const hraci=Object.entries(data).map(([j,s])=>({jmeno:j,zapasy:s.zapasy,goly:s.goly,asistence:s.asistence,body:s.body}));hraci.sort((a,b)=>b.body-a.body||b.goly-a.goly);const t=document.createElement('table');const h=t.createTHead().insertRow();['#','Hráč','Z','G','A','B'].forEach(x=>{const th=document.createElement('th');th.textContent=x;th.style.background='#10233f';th.style.color='white';h.appendChild(th);});const body=t.createTBody();hraci.forEach((p,i)=>{const r=body.insertRow();[i+1,p.jmeno,p.zapasy,p.goly,p.asistence,p.body].forEach((v,j)=>{const c=r.insertCell();c.textContent=v;c.style.textAlign=j===1?'left':'center';if(j===5)c.style.fontWeight='bold';});if(i<3)r.style.background='#fff8df';});box.appendChild(t);},e=>box.textContent='Chyba při načítání bodování: '+e.message);}
+function zobrazKanadskeBodovani(){
+  const box=document.getElementById('kanadske-bodovani');
+  apiGet('statistiky',{},function(data){
+    box.innerHTML='';
+    const hraci=Object.entries(data).map(([j,s])=>({
+      jmeno:j,zapasy:s.zapasy,goly:s.goly,asistence:s.asistence,
+      body:s.body,trestneMinuty:s.trestneMinuty||0
+    }));
+    hraci.sort((a,b)=>b.body-a.body||b.goly-a.goly);
+    const t=document.createElement('table');
+    const h=t.createTHead().insertRow();
+    ['#','Hráč','Z','G','A','B','TM'].forEach(x=>{
+      const th=document.createElement('th');th.textContent=x;
+      th.style.background='#10233f';th.style.color='white';h.appendChild(th);
+    });
+    const body=t.createTBody();
+    hraci.forEach((p,i)=>{
+      const r=body.insertRow();
+      [i+1,p.jmeno,p.zapasy,p.goly,p.asistence,p.body,p.trestneMinuty].forEach((v,j)=>{
+        const cell=r.insertCell();cell.textContent=v;
+        cell.style.textAlign=j===1?'left':'center';
+        if(j===5)cell.style.fontWeight='bold';
+      });
+      if(i<3)r.style.background='#fff8df';
+    });
+    box.appendChild(t);
+  },e=>box.textContent='Chyba při načítání bodování: '+e.message);
+}
 function zobrazPrehledTymu(){apiGet('prehled',{},function(d){document.getElementById('pocet-odehranych').textContent=d.zapasy;document.getElementById('pocet-bodu').textContent=d.body;document.getElementById('pocet-vyher').textContent=d.vyhry;document.getElementById('pocet-remiz').textContent=d.remizy;document.getElementById('pocet-proher').textContent=d.prohry;},e=>console.error(e));}
 function zobrazZapasy(){const box=document.getElementById('seznam-zapasu');apiGet('zapasy',{},function(zapasy){box.innerHTML='';if(!zapasy||!zapasy.length){box.className='empty';box.textContent='Zatím nebyly vloženy žádné zápasy.';return;}box.className='';box.style.maxWidth='850px';box.style.margin='0 auto';
       const logaTymu = {
@@ -109,7 +136,34 @@ function zobrazZapasy(){const box=document.getElementById('seznam-zapasu');apiGe
 };
       zapasy.forEach(function(z){const card=document.createElement('div');card.style.cssText='padding:15px;margin-bottom:12px;width:100%;text-align:center;background:#eef4fb;border-radius:10px;box-sizing:border-box';if(z.stav==='Odehráno'){card.style.cursor='pointer';card.title='Kliknutím zobrazíš kanadské bodování zápasu';card.addEventListener('click',()=>zobrazBodovaniZapasu(z.id));}const date=document.createElement('div');date.textContent=z.datum||'Datum bude doplněno';card.appendChild(date);const opponent=document.createElement('h3');opponent.style.cssText='display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:15px 0';const home=document.createElement('img');home.src=logaTymu['HC Mariánské Lázně']||'';home.style.cssText='width:45px;height:45px;object-fit:contain';if(home.src)opponent.appendChild(home);opponent.appendChild(document.createTextNode('HC Mariánské Lázně – '+z.souper));const away=document.createElement('img');away.src=logaTymu[z.souper]||'';away.style.cssText='width:45px;height:45px;object-fit:contain';if(away.src)opponent.appendChild(away);card.appendChild(opponent);if(z.cas){const time=document.createElement('div');time.textContent='Čas: '+z.cas;card.appendChild(time);}if(z.vysledekHCML!==''&&z.vysledekSouper!==''){const score=document.createElement('strong');score.textContent=z.vysledekHCML+' : '+z.vysledekSouper;card.appendChild(score);}const state=document.createElement('div');state.textContent=z.stav||'Plánováno';card.appendChild(state);box.appendChild(card);});
     },e=>box.textContent='Chyba při načítání zápasů: '+e.message);}
-function zobrazBodovaniZapasu(zapasId){const modal=document.getElementById('hrac-modal'),obsah=document.getElementById('hrac-modal-data');obsah.innerHTML='<h2>Načítám kanadské bodování...</h2>';modal.style.display='flex';apiGet('bodovaniZapasu',{zapasId:zapasId},function(hraci){obsah.innerHTML='<h2>🏒 Kanadské bodování zápasu</h2>';if(!hraci||!hraci.length){obsah.innerHTML+='<p>Pro tento zápas zatím nejsou zadané žádné statistiky.</p>';return;}const t=document.createElement('table');t.style.marginTop='20px';const h=t.createTHead().insertRow();['Hráč','Góly','Asistence','Body'].forEach(x=>{const th=document.createElement('th');th.textContent=x;th.style.background='#10233f';th.style.color='white';h.appendChild(th);});const b=t.createTBody();hraci.forEach(p=>{const r=b.insertRow();[p.jmeno,p.goly,p.asistence,p.body].forEach((v,i)=>{const c=r.insertCell();c.textContent=v;c.style.textAlign=i===0?'left':'center';});});obsah.appendChild(t);},e=>obsah.textContent='Chyba při načítání bodování: '+e.message);}
+function zobrazBodovaniZapasu(zapasId){
+  const modal=document.getElementById('hrac-modal');
+  const obsah=document.getElementById('hrac-modal-data');
+  obsah.innerHTML='<h2>Načítám kanadské bodování...</h2>';
+  modal.style.display='flex';
+  apiGet('bodovaniZapasu',{zapasId:zapasId},function(hraci){
+    obsah.innerHTML='<h2>🏒 Kanadské bodování zápasu</h2>';
+    if(!hraci||!hraci.length){
+      obsah.innerHTML+='<p>Pro tento zápas zatím nejsou zadané žádné statistiky.</p>';
+      return;
+    }
+    const t=document.createElement('table');t.style.marginTop='20px';
+    const h=t.createTHead().insertRow();
+    ['Hráč','Góly','Asistence','Body','TM'].forEach(x=>{
+      const th=document.createElement('th');th.textContent=x;
+      th.style.background='#10233f';th.style.color='white';h.appendChild(th);
+    });
+    const b=t.createTBody();
+    hraci.forEach(p=>{
+      const r=b.insertRow();
+      [p.jmeno,p.goly,p.asistence,p.body,p.trestneMinuty||0].forEach((v,i)=>{
+        const cell=r.insertCell();cell.textContent=v;
+        cell.style.textAlign=i===0?'left':'center';
+      });
+    });
+    obsah.appendChild(t);
+  },e=>obsah.textContent='Chyba při načítání bodování: '+e.message);
+}
 document.getElementById('hrac-modal-zavrit').onclick=()=>document.getElementById('hrac-modal').style.display='none';
 document.getElementById('hrac-modal').onclick=e=>{if(e.target.id==='hrac-modal')e.currentTarget.style.display='none';};document.onkeydown=e=>{if(e.key==='Escape')document.getElementById('hrac-modal').style.display='none';};
 zobrazSoupisku();zobrazZapasy();zobrazKanadskeBodovani();zobrazPrehledTymu();
