@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HC Mariánské Lázně – Mladší žáci</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f7;color:#17243a;font-family:Arial,sans-serif}
+header{background:linear-gradient(135deg,#10233f,#174b78);color:white;padding:30px 20px;text-align:center}
+header h1{margin:8px 0;font-size:28px}
+header p{color:#c8d9ed}
+nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;background:#fff;padding:14px;box-shadow:0 2px 8px #0001}
+nav a{color:#174b78;text-decoration:none;font-weight:bold;padding:8px}
+main{max-width:1050px;margin:25px auto;padding:0 15px}
+.panel{background:white;padding:22px;border-radius:14px;margin-bottom:20px;box-shadow:0 4px 15px #0000000c}
+h2{color:#174b78;margin-top:0}
+.welcome{text-align:center}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:#edf4fb;padding:18px;border-radius:10px;text-align:center}
+.stat strong{display:block;font-size:27px;color:#174b78}
+table{width:100%;border-collapse:collapse}
+th,td{padding:12px;text-align:left;border-bottom:1px solid #e5eaf0}
+th{background:#edf4fb;color:#174b78}
+.empty{text-align:center;color:#68778b;padding:20px}
+footer{text-align:center;padding:25px;color:#64748b}
+@media(max-width:600px){.stats{grid-template-columns:1fr}header h1{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+<div>HC MARIÁNSKÉ LÁZNĚ</div>
+<h1>MLADŠÍ ŽÁCI</h1>
+<p>Výsledky zápasů • Kanadské bodování • Statistiky</p>
+</header>
+<nav>
+<a href="#uvod">Úvod</a>
+<a href="#zapasy">Výsledky zápasů</a>
+<a href="#bodovani">Kanadské bodování</a>
+<a href="#tym">Náš tým</a>
+</nav>
+<main>
+<section class="panel welcome" id="uvod">
+<h2>Vítejte na našem hokejovém webu</h2>
+<p>Všechny výsledky a statistiky mladších žáků HC Mariánské Lázně na jednom místě.</p>
+</section>
+<section class="panel">
+<h2>Přehled týmu</h2>
+<div class="stats">
+  <div class="stat"><strong>23</strong>Hráčů v databázi</div>
+  <div class="stat"><strong id="pocet-odehranych">0</strong>Odehraných zápasů</div>
+  <div class="stat"><strong id="pocet-bodu">0</strong>Bodů týmu</div>
+</div>
+
+<div class="stats">
+  <div class="stat"><strong id="pocet-vyher">0</strong>Výhry</div>
+  <div class="stat"><strong id="pocet-remiz">0</strong>Remízy</div>
+  <div class="stat"><strong id="pocet-proher">0</strong>Prohry</div>
+</div>
+
+</section>
+<section class="panel" id="zapasy">
+<h2>Poslední výsledky</h2>
+<div id="seznam-zapasu" class="empty">Zatím nebyly vloženy žádné zápasy.</div>
+</section>
+
+<section class="panel" id="tym">
+
+<h2>Náš tým</h2>
+<p>Soupiska mladších žáků HC Mariánské Lázně.</p>
+
+
+<h2 style="text-align:center; margin:35px 0 20px;">
+  🏆 KANADSKÉ BODOVÁNÍ
+</h2>
+<div id="kanadske-bodovani" style="overflow-x:auto; margin-bottom:35px;">
+  <p>Načítám statistiky...</p>
+</div>
+
+<div id="soupiska" class="players">
+  <p>Načítám soupisku hráčů...</p>
+</div>
+
+
+<script>
+// Veřejné čtení dat z Google Apps Scriptu pro web na GitHub Pages.
+// JSONP obchází omezení CORS mezi GitHub Pages a Google Apps Script.
+const API_URL = 'https://script.google.com/macros/s/AKfycbzd7c1EghyiE41EEBL0MozjMDVAbQHMECtFAn6enmkKN3Gl4DSoBBuyvvct1NXEpd4-TA/exec';
+let jsonpCounter = 0;
+function apiCall(akce, parametry, uspech, chyba) {
+  const callback = 'hcmlJsonp_' + (++jsonpCounter);
+  const script = document.createElement('script');
+  const query = new URLSearchParams(Object.assign({ api: akce, callback: callback }, parametry || {}));
+  const timeout = setTimeout(() => {
+    cleanup();
+    if (chyba) chyba(new Error('Server neodpovídá. Zkus obnovit stránku.'));
+  }, 15000);
+  function cleanup() {
+    clearTimeout(timeout);
+    delete window[callback];
+    script.remove();
+  }
+  window[callback] = function(data) {
+    cleanup();
+    if (data && data.chyba) {
+      if (chyba) chyba(new Error(data.chyba));
+    } else if (uspech) uspech(data);
+  };
+  script.onerror = function() {
+    cleanup();
+    if (chyba) chyba(new Error('Nepodařilo se spojit s databází.'));
+  };
+  script.src = API_URL + '?' + query.toString();
+  document.head.appendChild(script);
+}
+
+function zobrazSoupisku() {
+  apiCall('soupiska', {}, function(hraci) {
+    apiCall('statistiky', {}, function(statistiky) {
+      const kontejner = document.getElementById('soupiska');
+      kontejner.innerHTML = '';
+      kontejner.style.display = 'grid';
+      kontejner.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))';
+      kontejner.style.gap = '20px';
+      const profily = {
+        'Šimon Halamka': { cislo: 4, obrazek: 'https://lh3.googleusercontent.com/d/19S1bfw8OZ6gd6wZ51zUwridYYUWqLp6M' },
+        'Wiliam Vrzák': { cislo: 7, obrazek: 'https://lh3.googleusercontent.com/d/1vlbafI1Pr2_nHm4ZBl5Sj3NdojJKb2dB' },
+        'Patrik Alex Plachý': { cislo: 9, obrazek: 'https://lh3.googleusercontent.com/d/1PRgqP1X13JHUQUnqHE17GRb_6yPYJN64' },
+        'Laura Pláteníková': { cislo: 10, obrazek: 'https://lh3.googleusercontent.com/d/16TAbH3OdOV6ovkueTVtPJAq3GmzCtXI5' },
+        'Josef Vintr': { cislo: 11, obrazek: 'https://lh3.googleusercontent.com/d/1oLS_lmuMxJ8WwqL5xbzOl0_kIpqPMyNQ' },
+        'Lucie Outratová': { cislo: 12, obrazek: 'https://lh3.googleusercontent.com/d/1mc1gV7nRTwmTULSMT83d0RZehK2dmq9L' },
+        'Patrik Drozda': { cislo: 13, obrazek: 'https://lh3.googleusercontent.com/d/10URyP2bK-WcvKrqzT4TFBrH3hfe2F3O7' },
+        'Alexander Bolonin': { cislo: 14, obrazek: 'https://lh3.googleusercontent.com/d/1vPpFoTg3AFXF9R_y3PCQyWV4y51WGLzn' },
+        'Jan Candra': { cislo: 16, obrazek: 'https://lh3.googleusercontent.com/d/1WLhEqS9S-QbQbSqmQiIc5vqzwB83IYBu' },
+        'Veronika Candrová': { cislo: 18, obrazek: 'https://lh3.googleusercontent.com/d/1lILOSdYytax6a9Ep6cSmJAnufwy0AW9h' },
+        'Patrik Lüley': { cislo: 20, obrazek: 'https://lh3.googleusercontent.com/d/1hEVxGEU5q3NQ6gtNW742TvsVBeim9NRO' },
+        'Filip Alexa': { cislo: 21, obrazek: 'https://lh3.googleusercontent.com/d/1IRoP-G8GektICeVqjr1Yd9_tpLwW7PqE' },
+        'Valentin Vrzák': { cislo: 23, obrazek: 'https://lh3.googleusercontent.com/d/1nUZpsctvVCeXddYZXfiX7F_1R6X_9hgF' },
+        'Antonín Alexa': { cislo: 25, obrazek: 'https://lh3.googleusercontent.com/d/15JGmBYY3Q4E7iFtET7amvOlspKWQZ2qZ' },
+        'Tomáš Petrák': { cislo: 39, obrazek: 'https://lh3.googleusercontent.com/d/1kueJEJbzzIx9iBsMFgzmAocIqNntedXB' },
+        'Timur Jerašov': { cislo: 41, obrazek: 'https://lh3.googleusercontent.com/d/1RUBCVLA8LDHqotiFs_t-UkWyO_ugCc8g' },
+        'Hugo Kavina': { cislo: 45, obrazek: 'https://lh3.googleusercontent.com/d/1rcQMZ9nLE9TAVWFWY9wl_-s8Gxh27hVM' },
+        'Tobiáš Polák': { cislo: 46, obrazek: 'https://lh3.googleusercontent.com/d/1PCqUoo4nO2ERPFM8JCQBocgn14smfXH8' },
+        'Šimon Matoušek': { cislo: 47, obrazek: 'https://lh3.googleusercontent.com/d/1chnOxqw0EW0pdmbhf8OVbq1JNr8Vgvku' },
+        'Vojtěch Matoušek': { cislo: 77, obrazek: 'https://lh3.googleusercontent.com/d/1TxfPsKA0vY-juvmdM2WIFxnoLRbkEizY' },
+        'Patrik Vojáček': { cislo: 88, obrazek: 'https://lh3.googleusercontent.com/d/19N72j7sGxB3O60HtJS2lj4yme0IS_en6' },
+        'Enzo Tichý': { cislo: 97, obrazek: 'https://lh3.googleusercontent.com/d/1DO7b9Jk00cJ7DLr68tTmOAaW_-wcqFMX' },
+        'Matěj Lüley': { cislo: 6, obrazek: 'https://lh3.googleusercontent.com/d/1-uHRodQlO1WAxIJOpX5pZwDuuF-Fd-hm' }
+      };
+      hraci.forEach(function(hrac) {
+        const jmeno = hrac.jmeno.trim();
+        const profil = profily[jmeno];
+        const st = statistiky[jmeno] || { zapasy: 0, goly: 0, asistence: 0, body: 0 };
+        const karta = document.createElement('div');
+        Object.assign(karta.style, {background:'#fff',color:'#17243a',borderRadius:'14px',padding:'15px',textAlign:'center',boxShadow:'0 3px 12px rgba(0,0,0,0.12)',cursor:'pointer'});
+        if (profil) {
+          const obrazek = document.createElement('img'); obrazek.src = profil.obrazek; obrazek.alt = 'Hráč ' + jmeno;
+          Object.assign(obrazek.style,{width:'100%',height:'300px',maxHeight:'300px',objectFit:'contain',borderRadius:'10px'}); karta.appendChild(obrazek);
+        } else {
+          const nahrada = document.createElement('div');
+          nahrada.innerHTML = `<div style="background:linear-gradient(145deg,#10233f,#174b78);color:white;border:3px solid #f4c542;border-radius:10px;height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:bold;box-sizing:border-box;"><div style="font-size:55px;">🏒</div><div style="font-size:23px;">HC MARIÁNSKÉ LÁZNĚ</div><div style="font-size:21px;margin-top:20px;color:#f4c542;">${jmeno}</div><div style="font-size:16px;margin-top:15px;">OFICIÁLNÍ HRÁČSKÁ KARTA</div><div style="font-size:13px;margin-top:25px;">SEZÓNA 2026/2027</div></div>`;
+          karta.appendChild(nahrada);
+        }
+        const nadpis=document.createElement('h3'); nadpis.textContent=jmeno; karta.appendChild(nadpis);
+        if(profil){const cislo=document.createElement('p');cislo.textContent='Číslo dresu: '+profil.cislo;cislo.style.fontWeight='bold';karta.appendChild(cislo);}
+        const statistikaEl=document.createElement('div'); Object.assign(statistikaEl.style,{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'8px',marginTop:'15px',padding:'12px',background:'#eef3f8',borderRadius:'10px'});
+        [['Zápasy',st.zapasy],['Góly',st.goly],['Asistence',st.asistence],['Body',st.body]].forEach(p=>{const b=document.createElement('div');b.innerHTML='<strong>'+p[1]+'</strong><br><small>'+p[0]+'</small>';statistikaEl.appendChild(b);});
+        karta.appendChild(statistikaEl);
+        karta.addEventListener('click',function(){const modal=document.getElementById('hrac-modal');const obsah=document.getElementById('hrac-modal-data');obsah.innerHTML='';const zvetsena=karta.cloneNode(true);zvetsena.style.boxShadow='none';zvetsena.style.width='100%';const img=zvetsena.querySelector('img');if(img){img.style.height='420px';img.style.maxHeight='420px';}const h=zvetsena.querySelector('h3');if(h)h.style.fontSize='28px';obsah.appendChild(zvetsena);modal.style.display='flex';});
+        kontejner.appendChild(karta);
+      });
+    }, function(e){document.getElementById('soupiska').textContent='Statistiky se nepodařilo načíst: '+e.message;});
+  }, function(e){document.getElementById('soupiska').textContent='Soupisku se nepodařilo načíst: '+e.message;});
+}
+
+function zobrazKanadskeBodovani() {
+  const kontejner = document.getElementById('kanadske-bodovani');
+
+  apiCall('statistiky', {}, function(statistiky) {
+      kontejner.innerHTML = '';
+
+      const hraci = Object.entries(statistiky).map(([jmeno, s]) => ({
+        jmeno: jmeno,
+        zapasy: s.zapasy,
+        goly: s.goly,
+        asistence: s.asistence,
+        body: s.body
+      }));
+
+      hraci.sort((a, b) =>
+        b.body - a.body || b.goly - a.goly
+      );
+
+      const tabulka = document.createElement('table');
+      tabulka.style.width = '100%';
+      tabulka.style.borderCollapse = 'collapse';
+      tabulka.style.background = 'white';
+      tabulka.style.color = '#17243a';
+
+      const hlavicka = tabulka.createTHead().insertRow();
+
+      ['#', 'Hráč', 'Z', 'G', 'A', 'B'].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        th.style.padding = '12px 8px';
+        th.style.background = '#10233f';
+        th.style.color = 'white';
+        hlavicka.appendChild(th);
+      });
+
+      const telo = tabulka.createTBody();
+
+      hraci.forEach((hrac, index) => {
+        const radek = telo.insertRow();
+
+        [
+          index + 1,
+          hrac.jmeno,
+          hrac.zapasy,
+          hrac.goly,
+          hrac.asistence,
+          hrac.body
+        ].forEach((hodnota, cislo) => {
+          const bunka = radek.insertCell();
+          bunka.textContent = hodnota;
+          bunka.style.padding = '11px 8px';
+          bunka.style.textAlign = cislo === 1 ? 'left' : 'center';
+          bunka.style.borderBottom = '1px solid #ddd';
+
+          if (cislo === 5) {
+            bunka.style.fontWeight = 'bold';
+          }
+        });
+
+        if (index < 3) {
+          radek.style.background = '#fff8df';
+        }
+      });
+
+      kontejner.appendChild(tabulka);
+    }, function(chyba) { kontejner.textContent = 'Chyba při načítání bodování: ' + chyba.message; });
+}
+function zobrazPrehledTymu() {
+  apiCall('prehled', {}, function(data) {
+      document.getElementById('pocet-odehranych').textContent = data.zapasy;
+      document.getElementById('pocet-bodu').textContent = data.body;
+      document.getElementById('pocet-vyher').textContent = data.vyhry;
+      document.getElementById('pocet-remiz').textContent = data.remizy;
+      document.getElementById('pocet-proher').textContent = data.prohry;
+    }, function(chyba) { console.error('Chyba přehledu týmu:', chyba); });
+}
+function zobrazZapasy() {
+  const kontejner = document.getElementById('seznam-zapasu');
+
+  apiCall('zapasy', {}, function(zapasy) {
+      kontejner.innerHTML = '';
+
+      if (!zapasy || zapasy.length === 0) {
+        kontejner.className = 'empty';
+        kontejner.textContent = 'Zatím nebyly vloženy žádné zápasy.';
+        return;
+      }
+
+      kontejner.className = '';
+      kontejner.style.width = '100%';
+kontejner.style.maxWidth = '850px';
+kontejner.style.margin = '0 auto';
+
+      zapasy.forEach(function(zapas) {
+        const karta = document.createElement('div');
+        if (zapas.stav === 'Odehráno') {
+  karta.style.cursor = 'pointer';
+  karta.title = 'Kliknutím zobrazíš kanadské bodování zápasu';
+
+  karta.addEventListener('click', function() {
+    zobrazBodovaniZapasu(zapas.id);
+  });
+}
+        karta.style.padding = '15px';
+        karta.style.marginBottom = '12px';
+        karta.style.width = '100%';
+karta.style.boxSizing = 'border-box';
+karta.style.textAlign = 'center';
+        karta.style.background = '#eef4fb';
+        karta.style.borderRadius = '10px';
+
+        const datum = document.createElement('div');
+        datum.textContent = zapas.datum || 'Datum bude doplněno';
+
+       
+const logaTymu = {
+  'HC Mariánské Lázně': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/180830_dfdf_marianske-lazne.png/w300h300t1712141239.webp',
+  'HC Škoda Plzeň B': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240109/124740_fb70_obrazek-2024-01-09-124737992.png/w300h300t1712141239.webp',
+  'HC Pilsen Wolves B': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240109/143103_a267_pilsenwolves.png/w300h300t1712141239.webp',
+'HC Meteor Třemošná B': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240109/142629_3ef0_logo-meteor-tremosna-nove.png/w300h300t1712141239.webp',
+'HC Baník Sokolov B': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240109/135948_5de9_sok.png/w300h300t1712141239.webp',
+'HC Rokycany z.s.': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/174747_b510_fe96aef57ec75c167afe39199ca80f8354bbd8af.png/w300h300t1712141239.webp',
+'HC Stadion Cheb': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240109/140316_4330_obrazek-2024-01-09-140305906.png/w300h300t1712141239.webp',
+'HC Domažlice': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/174719_fa68_1727d1d792afe75c66bf1d6f6ee5fb0ce9f088cf.png/w300h300t1712141239.webp',
+'HC Klatovy B': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/174913_057e_logo-hc2.png/w300h300t1712141239.webp',
+'HC Čerti Ostrov': 'https://ceskyhokej.cz/imgmin/data/club/logo/20261104/121102_fef4_HC-Certi-Ostrov-logo.png/w300h300t1793790663.webp',
+'HC Tachov': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/182924_509d_tachov.png/w300h300t1712141239.webp',
+'HC Rebel Město Nejdek': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/184505_8937_nejdek.png/w300h300t1712141239.webp','BYD Energie Karlovy Vary B': 'https://ceskyhokej.cz/imgmin/data/club/logo/20260907/193511_00c2_hokejkv-logo-zari2026.png/w300h300t1788802512.webp','TJ Sušice': 'https://hc-klatovy.cz/znaky/sus.png'
+};
+
+const souper = document.createElement('h3');
+souper.style.display = 'flex';
+souper.style.alignItems = 'center';
+souper.style.justifyContent = 'center';
+souper.style.flexWrap = 'wrap';
+souper.style.gap = '8px';
+souper.style.margin = '15px 0';
+
+const logoDomaci = document.createElement('img');
+logoDomaci.src = logaTymu['HC Mariánské Lázně'] || '';
+logoDomaci.style.width = '45px';
+logoDomaci.style.height = '45px';
+logoDomaci.style.objectFit = 'contain';
+logoDomaci.style.verticalAlign = 'middle';
+logoDomaci.style.marginRight = '10px';
+
+if (logoDomaci.src) souper.appendChild(logoDomaci);
+
+souper.appendChild(document.createTextNode('HC Mariánské Lázně – ' + zapas.souper));
+
+const logoSouper = document.createElement('img');
+logoSouper.src = logaTymu[zapas.souper] || '';
+logoSouper.style.width = '45px';
+logoSouper.style.height = '45px';
+logoSouper.style.objectFit = 'contain';
+logoSouper.style.verticalAlign = 'middle';
+logoSouper.style.marginLeft = '10px';
+
+if (logoSouper.src) souper.appendChild(logoSouper);
+        karta.appendChild(datum);
+        karta.appendChild(souper);
+
+        if (zapas.cas) {
+          const cas = document.createElement('div');
+          cas.textContent = 'Čas: ' + zapas.cas;
+          karta.appendChild(cas);
+        }
+
+        if (zapas.vysledekHCML !== '' && zapas.vysledekSouper !== '') {
+          const vysledek = document.createElement('strong');
+          vysledek.textContent =
+            zapas.vysledekHCML + ' : ' + zapas.vysledekSouper;
+          karta.appendChild(vysledek);
+        }
+
+        const stav = document.createElement('div');
+        stav.textContent = zapas.stav || 'Plánováno';
+        karta.appendChild(stav);
+
+        kontejner.appendChild(karta);
+      });
+    }, function(chyba) { kontejner.textContent = 'Chyba při načítání zápasů: ' + chyba.message; });
+}
+
+zobrazSoupisku();
+zobrazZapasy();
+zobrazKanadskeBodovani();
+zobrazPrehledTymu();
+function zobrazBodovaniZapasu(zapasId) {
+  const modal = document.getElementById('hrac-modal');
+  const obsah = document.getElementById('hrac-modal-data');
+  const zavrit = document.getElementById('hrac-modal-zavrit');
+
+  obsah.innerHTML = '<h2>Načítám kanadské bodování...</h2>';
+  modal.style.display = 'flex';
+
+  apiCall('bodovaniZapasu', { zapasId: zapasId }, function(hraci) {
+      obsah.innerHTML = '<h2>🏒 Kanadské bodování zápasu</h2>';
+
+      if (!hraci || hraci.length === 0) {
+        obsah.innerHTML += '<p>Pro tento zápas zatím nejsou zadané žádné statistiky.</p>';
+        return;
+      }
+
+      const tabulka = document.createElement('table');
+      tabulka.style.width = '100%';
+      tabulka.style.borderCollapse = 'collapse';
+      tabulka.style.marginTop = '20px';
+
+      const hlavicka = tabulka.createTHead().insertRow();
+
+      ['Hráč', 'Góly', 'Asistence', 'Body'].forEach(function(text) {
+        const th = document.createElement('th');
+        th.textContent = text;
+        th.style.padding = '12px 6px';
+        th.style.background = '#10233f';
+        th.style.color = 'white';
+        hlavicka.appendChild(th);
+      });
+
+      const telo = tabulka.createTBody();
+
+      hraci.forEach(function(hrac) {
+        const radek = telo.insertRow();
+
+        [hrac.jmeno, hrac.goly, hrac.asistence, hrac.body]
+          .forEach(function(hodnota, index) {
+            const bunka = radek.insertCell();
+            bunka.textContent = hodnota;
+            bunka.style.padding = '12px 6px';
+            bunka.style.textAlign = index === 0 ? 'left' : 'center';
+            bunka.style.borderBottom = '1px solid #ddd';
+          });
+      });
+
+      obsah.appendChild(tabulka);
+    }, function(chyba) { obsah.textContent = 'Chyba při načítání bodování: ' + chyba.message; });
+
+  zavrit.onclick = function() {
+    modal.style.display = 'none';
+  };
+
+  modal.onclick = function(e) {
+    if (e.target === modal) modal.style.display = 'none';
+  };
+
+  document.onkeydown = function(e) {
+    if (e.key === 'Escape') modal.style.display = 'none';
+  };
+}
+</script>
+
+
+</section>
+</main>
+<footer>HC Mariánské Lázně – Mladší žáci | Hokejová sezóna 2026/2027</footer>
+<div id="hrac-modal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.8);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  box-sizing:border-box;
+">
+  <div id="hrac-modal-obsah" style="
+    position:relative;
+    background:white;
+    color:#17243a;
+    width:100%;
+    max-width:650px;
+    max-height:90vh;
+    overflow-y:auto;
+    border-radius:18px;
+    padding:20px;
+    box-sizing:border-box;
+    text-align:center;
+  ">
+    <button id="hrac-modal-zavrit" style="
+      position:absolute;
+      top:10px;
+      right:12px;
+      border:none;
+      background:#10233f;
+      color:white;
+      font-size:25px;
+      border-radius:50%;
+      width:38px;
+      height:38px;
+      cursor:pointer;
+    ">×</button>
+    <div id="hrac-modal-data" style="padding-top:25px;"></div>
+  </div>
+</div>
+</body>
+</html>
