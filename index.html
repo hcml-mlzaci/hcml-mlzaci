@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HC Mariánské Lázně – Mladší žáci</title>
+<meta name="description" content="Výsledky, statistiky a hráčské profily mladších žáků HC Mariánské Lázně.">
 <style>
 *{box-sizing:border-box}body{margin:0;background:#eef2f7;color:#17243a;font-family:Arial,sans-serif}
 header{background:linear-gradient(135deg,#10233f,#174b78);color:white;padding:30px 20px;text-align:center}header h1{margin:8px 0;font-size:28px}header p{color:#c8d9ed}
@@ -29,23 +30,41 @@ table{width:100%;border-collapse:collapse}th,td{padding:12px;text-align:left;bor
 </main><footer>HC Mariánské Lázně – Mladší žáci | Hokejová sezóna 2026/2027</footer>
 <div id="hrac-modal"><div id="hrac-modal-obsah"><button id="hrac-modal-zavrit">×</button><div id="hrac-modal-data" style="padding-top:25px"></div></div></div>
 <script>
-const API_URL = 'https://script.google.com/macros/s/AKfycbzd7c1EghyiE41EEBL0MozjMDVAbQHMECtFAn6enmkKN3Gl4DSoBBuyvvct1NXEpd4-TA/exec';
-let jsonpCounter = 0;
+const DATA_BASE = 'https://hcml-mlzaci.github.io/hcml-mlzaci/data/';
+const DATA_FILES = {
+  soupIska: 'soupisky.json',
+  statistiky: 'statistiky.json',
+  prehled: 'prehled.json',
+  zapasy: 'zapasy.json',
+  bodovaniZapasu: 'bodovaniZapasu.json'
+};
+const dataCache = {};
 function apiGet(akce, parametry, uspech, chyba) {
-  const callback = 'hcmlJsonp_' + (++jsonpCounter) + '_' + Date.now();
-  const script = document.createElement('script');
-  const query = new URLSearchParams(Object.assign({api: akce, callback: callback}, parametry || {}));
-  let timeout;
-  window[callback] = function(data) {
-    clearTimeout(timeout); delete window[callback]; script.remove();
-    if (data && data.chyba) { if (chyba) chyba(new Error(data.chyba)); return; }
-    uspech(data);
-  };
-  script.onerror = function() { clearTimeout(timeout); delete window[callback]; script.remove(); if (chyba) chyba(new Error('Nepodařilo se spojit s databází.')); };
-  timeout = setTimeout(function(){ delete window[callback]; script.remove(); if (chyba) chyba(new Error('Databáze neodpovídá. Zkus obnovit stránku.')); }, 15000);
-  script.src = API_URL + '?' + query.toString();
-  document.head.appendChild(script);
+  const file = DATA_FILES[akce] || (akce === 'soupiska' ? DATA_FILES.soupIska : null);
+  if (!file) {
+    if (chyba) chyba(new Error('Neznámý datový soubor: ' + akce));
+    return;
+  }
+  const url = DATA_BASE + file + '?v=' + Date.now();
+  fetch(url, { method: 'GET', cache: 'no-store' })
+    .then(response => {
+      if (!response.ok) throw new Error('GitHub nevrátil soubor ' + file + ' (HTTP ' + response.status + ').');
+      return response.json();
+    })
+    .then(data => {
+      if (akce === 'bodovaniZapasu') {
+        const id = String((parametry || {}).zapasId || '');
+        uspech(data[id] || data[Number(id)] || []);
+      } else {
+        uspech(data);
+      }
+    })
+    .catch(error => {
+      console.error('Chyba při načítání ' + file + ':', error);
+      if (chyba) chyba(error);
+    });
 }
+
 function zobrazSoupisku() {
   apiGet('soupiska', {}, function(hraci) {
     apiGet('statistiky', {}, function(statistiky) {
