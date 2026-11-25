@@ -3,10 +3,10 @@
     "id": "9",
     "datum": "2026-11-28",
     "souper": "HC Škoda Plzeň B",
-    "vysledekHCML": "",
-    "vysledekSouper": "",
+    "vysledekHCML": 1,
+    "vysledekSouper": 0,
     "cas": "10:00",
-    "stav": "Plánováno",
+    "stav": "Odehráno",
     "misto": "Doma"
   },
   {
