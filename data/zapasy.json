@@ -1,0 +1,92 @@
+[
+  {
+    "id": "9",
+    "datum": "2026-11-28",
+    "souper": "HC Škoda Plzeň B",
+    "vysledekHCML": "",
+    "vysledekSouper": "",
+    "cas": "10:00",
+    "stav": "Plánováno",
+    "misto": "Doma"
+  },
+  {
+    "id": "1",
+    "datum": "2026-09-28",
+    "souper": "HC Domažlice",
+    "vysledekHCML": 5,
+    "vysledekSouper": 7,
+    "cas": "17:20",
+    "stav": "Odehráno",
+    "misto": "Doma"
+  },
+  {
+    "id": "2",
+    "datum": "2026-10-03",
+    "souper": "HC Pilsen Wolves B",
+    "vysledekHCML": 3,
+    "vysledekSouper": 11,
+    "cas": "11:20",
+    "stav": "Odehráno",
+    "misto": "Venku"
+  },
+  {
+    "id": "3",
+    "datum": "2026-10-11",
+    "souper": "TJ Sušice",
+    "vysledekHCML": 12,
+    "vysledekSouper": 2,
+    "cas": "15:00",
+    "stav": "Odehráno",
+    "misto": "Venku"
+  },
+  {
+    "id": "4",
+    "datum": "2026-10-24",
+    "souper": "BYD Energie Karlovy Vary B",
+    "vysledekHCML": 8,
+    "vysledekSouper": 6,
+    "cas": "17:50",
+    "stav": "Odehráno",
+    "misto": "Doma"
+  },
+  {
+    "id": "5",
+    "datum": "2026-11-01",
+    "souper": "HC Baník Sokolov B",
+    "vysledekHCML": 4,
+    "vysledekSouper": 11,
+    "cas": "12:50",
+    "stav": "Odehráno",
+    "misto": "Venku"
+  },
+  {
+    "id": "6",
+    "datum": "2026-11-08",
+    "souper": "HC Stadion Cheb",
+    "vysledekHCML": 4,
+    "vysledekSouper": 3,
+    "cas": "09:50",
+    "stav": "Odehráno",
+    "misto": "Doma"
+  },
+  {
+    "id": "7",
+    "datum": "2026-11-14",
+    "souper": "HC Čerti Ostrov",
+    "vysledekHCML": 24,
+    "vysledekSouper": 4,
+    "cas": "14:00",
+    "stav": "Odehráno",
+    "misto": "Venku"
+  },
+  {
+    "id": "8",
+    "datum": "2026-11-22",
+    "souper": "HC Rebel Město Nejdek",
+    "vysledekHCML": 20,
+    "vysledekSouper": 10,
+    "cas": "09:15",
+    "stav": "Odehráno",
+    "misto": "Doma"
+  }
+]
