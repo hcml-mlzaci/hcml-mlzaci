@@ -162,6 +162,29 @@ function zobrazZapasy() {
     box.className = '';
     box.style.maxWidth = '850px';
     box.style.margin = '0 auto';
+    
+    // Řazení zápasů: plánované nejdříve, odehrané od nejnovějšího
+    function prevedDatum(datum) {
+      const casti = String(datum || '').trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      if (casti) {
+        return new Date(+casti[3], +casti[2] - 1, +casti[1]).getTime();
+      }
+      const cas = Date.parse(datum);
+      return isNaN(cas) ? 0 : cas;
+    }
+
+    zapasy.sort(function(a, b) {
+      const aOdehrano = a.stav === 'Odehráno';
+      const bOdehrano = b.stav === 'Odehráno';
+
+      if (aOdehrano !== bOdehrano) {
+        return aOdehrano ? 1 : -1;
+      }
+
+      const rozdil = prevedDatum(a.datum) - prevedDatum(b.datum);
+      return aOdehrano ? -rozdil : rozdil;
+    });
+
 
     const logaTymu = {
       'HC Mariánské Lázně': 'https://ceskyhokej.cz/imgmin/data/club/logo/20240402/180830_dfdf_marianske-lazne.png/w300h300t1712141239.webp',
