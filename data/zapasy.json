@@ -88,5 +88,15 @@
     "cas": "09:15",
     "stav": "Odehráno",
     "misto": "Doma"
+  },
+  {
+    "id": "10",
+    "datum": "2026-12-06",
+    "souper": "HC METEOR TŘEMOŠNÁ B",
+    "vysledekHCML": "",
+    "vysledekSouper": "",
+    "cas": "09:29",
+    "stav": "Plánováno",
+    "misto": "Venku"
   }
 ]
