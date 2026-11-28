@@ -917,5 +917,119 @@
       "body": 0,
       "trestneMinuty": 0
     }
+  ],
+  "9": [
+    {
+      "jmeno": "Patrik Vojáček",
+      "goly": 1,
+      "asistence": 0,
+      "body": 1,
+      "trestneMinuty": 2
+    },
+    {
+      "jmeno": "Patrik Drozda",
+      "goly": 0,
+      "asistence": 1,
+      "body": 1,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Matěj Lüley",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 2
+    },
+    {
+      "jmeno": "Valentin Vrzák",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Šimon Matoušek",
+      "goly": 2,
+      "asistence": 0,
+      "body": 2,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Hugo Kavina",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Jan Candra",
+      "goly": 0,
+      "asistence": 1,
+      "body": 1,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Patrik Lüley",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Vojtěch Matoušek",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 2
+    },
+    {
+      "jmeno": "Wiliam Vrzák",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Enzo Tichý",
+      "goly": 1,
+      "asistence": 0,
+      "body": 1,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Alexander Bolonin",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Tobiáš Polák",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Patrik Alex Plachý",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Šimon Halamka",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    },
+    {
+      "jmeno": "Tomáš Petrák",
+      "goly": 0,
+      "asistence": 0,
+      "body": 0,
+      "trestneMinuty": 0
+    }
   ]
 }
